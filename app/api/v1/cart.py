@@ -1,14 +1,3 @@
-"""
-app/api/v1/cart.py
-──────────────────
-Shopping cart endpoints (FR22).
-
-Routes:
-    GET    /cart           — Get the current cart with totals.
-    POST   /cart/items     — Add a completed basket to the cart.
-    PUT    /cart/items/{id} — Edit quantity of a cart item (FR22).
-    DELETE /cart/items/{id} — Remove a cart item.
-"""
 
 from typing import Optional
 
@@ -22,12 +11,10 @@ from app.services.cart_service import CartService
 
 router = APIRouter(prefix="/cart", tags=["Cart"])
 
-
 def _get_ids(current_user, session_id: Optional[str]):
-    """Extract user_id and session_id for cart operations."""
+
     user_id = current_user.id if current_user else None
     return user_id, session_id
-
 
 @router.get(
     "/",
@@ -39,12 +26,7 @@ async def get_cart(
     current_user=Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Return the current cart with subtotal, shipping fee, and total.
 
-    Authenticated users are identified by JWT; guests by the
-    ``X-Session-ID`` header.
-    """
     user_id, session_id = _get_ids(current_user, x_session_id)
     service = CartService(db)
     result = await service.get_cart(user_id=user_id, session_id=session_id)
@@ -61,7 +43,6 @@ async def get_cart(
         created_at=cart.created_at,
     )
 
-
 @router.post(
     "/items",
     response_model=CartResponse,
@@ -74,7 +55,7 @@ async def add_to_cart(
     current_user=Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ):
-    """Add a completed basket to the cart."""
+
     user_id, session_id = _get_ids(current_user, x_session_id)
     service = CartService(db)
     result = await service.add_item(
@@ -93,7 +74,6 @@ async def add_to_cart(
         created_at=cart.created_at,
     )
 
-
 @router.put(
     "/items/{item_id}",
     response_model=CartResponse,
@@ -106,7 +86,7 @@ async def update_cart_item(
     current_user=Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ):
-    """Update the quantity of a cart item."""
+
     user_id, session_id = _get_ids(current_user, x_session_id)
     service = CartService(db)
     result = await service.update_item(
@@ -125,7 +105,6 @@ async def update_cart_item(
         created_at=cart.created_at,
     )
 
-
 @router.delete(
     "/items/{item_id}",
     response_model=CartResponse,
@@ -137,7 +116,7 @@ async def remove_cart_item(
     current_user=Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ):
-    """Remove a line item from the cart."""
+
     user_id, session_id = _get_ids(current_user, x_session_id)
     service = CartService(db)
     result = await service.remove_item(

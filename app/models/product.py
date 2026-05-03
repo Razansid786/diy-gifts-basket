@@ -1,15 +1,3 @@
-"""
-app/models/product.py
-─────────────────────
-ORM models for the ``products`` and ``product_relations`` tables.
-
-``Product``
-    Gift items available for purchase (FR6).  Tracks inventory to
-    support the "Sold Out" badge (FR10).
-
-``ProductRelation``
-    Self-referencing many-to-many for "Related Items" (FR9).
-"""
 
 import uuid
 from datetime import datetime, timezone
@@ -19,9 +7,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
-
 class ProductRelation(Base):
-    """Association table linking a product to its related products (FR9)."""
+
     __tablename__ = "product_relations"
 
     product_id: Mapped[str] = mapped_column(
@@ -32,7 +19,6 @@ class ProductRelation(Base):
         String(36), ForeignKey("products.id", ondelete="CASCADE"),
         primary_key=True,
     )
-
 
 class Product(Base):
     __tablename__ = "products"
@@ -60,13 +46,11 @@ class Product(Base):
         String(500), nullable=True, default="",
     )
 
-    # ── Category FK ──────────────────────────────────────────────────
     category_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("categories.id", ondelete="SET NULL"),
         nullable=True,
     )
 
-    # ── Inventory ────────────────────────────────────────────────────
     inventory_count: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0,
         doc="Current stock level; 0 = sold out (FR10).",
@@ -76,7 +60,6 @@ class Product(Base):
         doc="Soft-delete / visibility toggle.",
     )
 
-    # ── Timestamps ───────────────────────────────────────────────────
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False,
         default=lambda: datetime.now(timezone.utc),
@@ -87,22 +70,19 @@ class Product(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    # ── Relationships ────────────────────────────────────────────────
     category = relationship("Category", back_populates="products")
 
-    # Self-referencing many-to-many for related products
     related_products = relationship(
         "Product",
         secondary="product_relations",
         primaryjoin="Product.id == ProductRelation.product_id",
         secondaryjoin="Product.id == ProductRelation.related_product_id",
-        lazy="selectin",
+        lazy="raise",
     )
 
-    # ── Computed helpers ─────────────────────────────────────────────
     @property
     def is_sold_out(self) -> bool:
-        """Return True when inventory has reached zero (FR10)."""
+
         return self.inventory_count <= 0
 
     def __repr__(self) -> str:

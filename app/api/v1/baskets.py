@@ -1,17 +1,3 @@
-"""
-app/api/v1/baskets.py
-─────────────────────
-Basket builder endpoints (FR11–FR17).
-
-Routes:
-    POST   /baskets                    — Create a new basket (FR11).
-    PUT    /baskets/{id}/base          — Select/change the base (FR12).
-    POST   /baskets/{id}/items         — Add an item (FR14, FR15).
-    DELETE /baskets/{id}/items/{iid}   — Remove an item (FR16).
-    GET    /baskets/{id}/summary       — Review basket summary (FR17).
-    POST   /baskets/{id}/complete      — Mark basket as complete.
-    GET    /baskets/bases              — List available containers.
-"""
 
 from typing import List, Optional
 
@@ -23,14 +9,30 @@ from app.db.session import get_db
 from app.schemas.basket import (
     BasketCreate,
     BasketItemAdd,
+    BasketItemsSync,
     BasketResponse,
     BasketSetBase,
+    CompleteAndCartRequest,
     GiftBaseResponse,
+    QuickBuyRequest,
 )
 from app.services.basket_service import BasketService
 
 router = APIRouter(prefix="/baskets", tags=["Basket Builder"])
 
+def _build_response(result: dict) -> BasketResponse:
+
+    basket = result["basket"]
+    return BasketResponse(
+        id=basket.id,
+        user_id=basket.user_id,
+        session_id=basket.session_id,
+        base=basket.base,
+        status=basket.status,
+        items=basket.items,
+        running_total=result["running_total"],
+        created_at=basket.created_at,
+    )
 
 @router.get(
     "/bases",
@@ -38,10 +40,9 @@ router = APIRouter(prefix="/baskets", tags=["Basket Builder"])
     summary="List available gift bases / containers (FR12)",
 )
 async def list_bases(db: AsyncSession = Depends(get_db)):
-    """Return all base containers (Baskets, Boxes, Tins) with sizes and prices."""
+
     service = BasketService(db)
     return await service.list_bases()
-
 
 @router.post(
     "/",
@@ -54,29 +55,11 @@ async def create_basket(
     current_user=Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Start a new basket build.
 
-    Authenticated users are linked automatically; guests should
-    provide a ``session_id`` in the request body.
-    """
     user_id = current_user.id if current_user else None
     service = BasketService(db)
-    basket = await service.create_basket(user_id=user_id, data=data)
-
-    # Calculate running total for the response
-    summary = await service.get_basket_summary(basket.id)
-    return BasketResponse(
-        id=basket.id,
-        user_id=basket.user_id,
-        session_id=basket.session_id,
-        base=basket.base,
-        status=basket.status,
-        items=basket.items,
-        running_total=summary["running_total"],
-        created_at=basket.created_at,
-    )
-
+    result = await service.create_basket(user_id=user_id, data=data)
+    return _build_response(result)
 
 @router.put(
     "/{basket_id}/base",
@@ -88,21 +71,10 @@ async def set_base(
     data: BasketSetBase,
     db: AsyncSession = Depends(get_db),
 ):
-    """Assign a gift base (container) to the basket."""
-    service = BasketService(db)
-    basket = await service.set_base(basket_id, data.base_id)
-    summary = await service.get_basket_summary(basket.id)
-    return BasketResponse(
-        id=basket.id,
-        user_id=basket.user_id,
-        session_id=basket.session_id,
-        base=basket.base,
-        status=basket.status,
-        items=basket.items,
-        running_total=summary["running_total"],
-        created_at=basket.created_at,
-    )
 
+    service = BasketService(db)
+    result = await service.set_base(basket_id, data.base_id)
+    return _build_response(result)
 
 @router.post(
     "/{basket_id}/items",
@@ -115,20 +87,25 @@ async def add_item(
     data: BasketItemAdd,
     db: AsyncSession = Depends(get_db),
 ):
-    """Add a product to the basket (enforces capacity limit)."""
+
     service = BasketService(db)
-    basket = await service.add_item(basket_id, data)
-    summary = await service.get_basket_summary(basket.id)
-    return BasketResponse(
-        id=basket.id,
-        user_id=basket.user_id,
-        session_id=basket.session_id,
-        base=basket.base,
-        status=basket.status,
-        items=basket.items,
-        running_total=summary["running_total"],
-        created_at=basket.created_at,
-    )
+    result = await service.add_item(basket_id, data)
+    return _build_response(result)
+
+@router.put(
+    "/{basket_id}/items/sync",
+    response_model=BasketResponse,
+    summary="Replace basket items in one request",
+)
+async def sync_items(
+    basket_id: str,
+    data: BasketItemsSync,
+    db: AsyncSession = Depends(get_db),
+):
+
+    service = BasketService(db)
+    result = await service.sync_items(basket_id, data)
+    return _build_response(result)
 
 
 @router.delete(
@@ -141,21 +118,10 @@ async def remove_item(
     item_id: str,
     db: AsyncSession = Depends(get_db),
 ):
-    """One-click removal of an item from the basket."""
-    service = BasketService(db)
-    basket = await service.remove_item(basket_id, item_id)
-    summary = await service.get_basket_summary(basket.id)
-    return BasketResponse(
-        id=basket.id,
-        user_id=basket.user_id,
-        session_id=basket.session_id,
-        base=basket.base,
-        status=basket.status,
-        items=basket.items,
-        running_total=summary["running_total"],
-        created_at=basket.created_at,
-    )
 
+    service = BasketService(db)
+    result = await service.remove_item(basket_id, item_id)
+    return _build_response(result)
 
 @router.get(
     "/{basket_id}/summary",
@@ -166,25 +132,10 @@ async def get_summary(
     basket_id: str,
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Return the full basket summary including items and running total.
 
-    Used for the 'Review My Basket' page before checkout.
-    """
     service = BasketService(db)
-    summary = await service.get_basket_summary(basket_id)
-    basket = summary["basket"]
-    return BasketResponse(
-        id=basket.id,
-        user_id=basket.user_id,
-        session_id=basket.session_id,
-        base=basket.base,
-        status=basket.status,
-        items=basket.items,
-        running_total=summary["running_total"],
-        created_at=basket.created_at,
-    )
-
+    result = await service.get_basket_summary(basket_id)
+    return _build_response(result)
 
 @router.post(
     "/{basket_id}/complete",
@@ -195,17 +146,48 @@ async def complete_basket(
     basket_id: str,
     db: AsyncSession = Depends(get_db),
 ):
-    """Mark the basket as complete so it can be added to the cart."""
+
     service = BasketService(db)
-    basket = await service.complete_basket(basket_id)
-    summary = await service.get_basket_summary(basket.id)
-    return BasketResponse(
-        id=basket.id,
-        user_id=basket.user_id,
-        session_id=basket.session_id,
-        base=basket.base,
-        status=basket.status,
-        items=basket.items,
-        running_total=summary["running_total"],
-        created_at=basket.created_at,
+    result = await service.complete_basket(basket_id)
+    return _build_response(result)
+
+@router.post(
+    "/{basket_id}/complete-and-cart",
+    response_model=BasketResponse,
+    status_code=201,
+    summary="Complete basket and add to cart in one call",
+)
+async def complete_and_add_to_cart(
+    basket_id: str,
+    data: CompleteAndCartRequest,
+    x_session_id: Optional[str] = Header(None, alias="X-Session-ID"),
+    current_user=Depends(get_current_user_optional),
+    db: AsyncSession = Depends(get_db),
+):
+
+    user_id = current_user.id if current_user else None
+    service = BasketService(db)
+    result = await service.complete_and_add_to_cart(
+        basket_id=basket_id,
+        user_id=user_id,
+        session_id=x_session_id,
+        data=data,
     )
+    return _build_response(result)
+
+@router.post(
+    "/quick-buy",
+    response_model=BasketResponse,
+    status_code=201,
+    summary="Buy a prebuilt basket in one call",
+)
+async def quick_buy(
+    data: QuickBuyRequest,
+    current_user=Depends(get_current_user_optional),
+    db: AsyncSession = Depends(get_db),
+):
+
+    user_id = current_user.id if current_user else None
+    service = BasketService(db)
+    result = await service.quick_buy(user_id=user_id, data=data)
+    return _build_response(result)

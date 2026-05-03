@@ -1,15 +1,3 @@
-"""
-app/models/cart.py
-──────────────────
-ORM models for the shopping cart (FR22).
-
-``Cart``
-    One cart per user (or per guest session).
-
-``CartItem``
-    Each item in the cart references a completed ``Basket``.
-    The user can adjust the quantity of each basket before checkout.
-"""
 
 import uuid
 from datetime import datetime, timezone
@@ -19,7 +7,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
-
 class Cart(Base):
     __tablename__ = "carts"
 
@@ -28,7 +15,6 @@ class Cart(Base):
         default=lambda: str(uuid.uuid4()),
     )
 
-    # ── Owner ────────────────────────────────────────────────────────
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="CASCADE"),
         nullable=True, unique=True,
@@ -39,19 +25,16 @@ class Cart(Base):
         doc="Browser session ID for guest carts.",
     )
 
-    # ── Timestamps ───────────────────────────────────────────────────
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False,
         default=lambda: datetime.now(timezone.utc),
     )
 
-    # ── Relationships ────────────────────────────────────────────────
     user = relationship("User", back_populates="carts")
     items = relationship("CartItem", back_populates="cart", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"<Cart id={self.id!r} user_id={self.user_id!r}>"
-
 
 class CartItem(Base):
     __tablename__ = "cart_items"
@@ -71,7 +54,6 @@ class CartItem(Base):
         Integer, nullable=False, default=1,
     )
 
-    # ── Relationships ────────────────────────────────────────────────
     cart = relationship("Cart", back_populates="items")
     basket = relationship("Basket")
 

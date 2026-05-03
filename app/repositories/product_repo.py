@@ -1,13 +1,3 @@
-"""
-app/repositories/product_repo.py
-────────────────────────────────
-Data-access layer for the ``products`` table (FR6–FR10).
-
-Contains custom queries for:
-* Searching by keyword (FR8)
-* Filtering by category (FR7)
-* Fetching related items (FR9)
-"""
 
 from typing import List, Optional
 
@@ -18,14 +8,22 @@ from sqlalchemy.orm import selectinload
 from app.models.product import Product, ProductRelation
 from app.repositories.base import BaseRepository
 
-
 class ProductRepository(BaseRepository[Product]):
-    """Repository for product catalog queries."""
 
     model = Product
 
     def __init__(self, db: AsyncSession):
         super().__init__(db)
+
+    async def get_by_ids(self, product_ids: List[str]) -> List[Product]:
+
+        if not product_ids:
+            return []
+
+        result = await self.db.execute(
+            select(Product).where(Product.id.in_(product_ids))
+        )
+        return list(result.scalars().all())
 
     async def search(
         self,
@@ -37,20 +35,7 @@ class ProductRepository(BaseRepository[Product]):
         skip: int = 0,
         limit: int = 50,
     ) -> List[Product]:
-        """
-        Full-text keyword search with optional filters (FR8).
 
-        Parameters
-        ----------
-        q : str, optional
-            Search term matched against title and description (case-insensitive).
-        category_id : str, optional
-            Filter by category FK.
-        min_price / max_price : float, optional
-            Price range filter.
-        in_stock_only : bool
-            If True, exclude items with ``inventory_count <= 0``.
-        """
         stmt = select(Product).where(Product.is_active.is_(True))
 
         if q:
@@ -81,7 +66,7 @@ class ProductRepository(BaseRepository[Product]):
     async def get_by_category(
         self, category_id: str, skip: int = 0, limit: int = 50
     ) -> List[Product]:
-        """Return all active products in a given category (FR7)."""
+
         result = await self.db.execute(
             select(Product)
             .where(Product.category_id == category_id, Product.is_active.is_(True))
@@ -91,13 +76,7 @@ class ProductRepository(BaseRepository[Product]):
         return list(result.scalars().all())
 
     async def get_related(self, product_id: str) -> List[Product]:
-        """
-        Return products linked via ``product_relations`` (FR9).
 
-        Uses a sub-query on the association table to find related IDs,
-        then fetches the full product rows.
-        """
-        # Find related product IDs
         sub = select(ProductRelation.related_product_id).where(
             ProductRelation.product_id == product_id
         )

@@ -1,21 +1,3 @@
-"""
-app/models/basket.py
-────────────────────
-ORM models for the basket builder (FR11–FR17).
-
-``GiftBase``
-    Physical container — Basket, Box, or Tin.  Defines a ``size``
-    (S / M / L) and ``max_items`` to enforce capacity limits (FR14).
-
-``Basket``
-    A user's in-progress or completed gift assembly.  Linked to a
-    ``GiftBase`` (FR12) and optionally to a ``User`` (guests use
-    ``session_id`` instead).
-
-``BasketItem``
-    Junction table connecting a ``Basket`` to its ``Product`` items,
-    with a quantity column.
-"""
 
 import uuid
 from datetime import datetime, timezone
@@ -25,10 +7,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
-
-# NOTE: Named ``GiftBase`` to avoid shadowing SQLAlchemy's ``Base``.
 class GiftBase(Base):
-    """Physical container that holds the gift items (FR12)."""
+
     __tablename__ = "bases"
 
     id: Mapped[str] = mapped_column(
@@ -55,15 +35,13 @@ class GiftBase(Base):
         doc="Maximum number of gift items this container can hold (FR14).",
     )
 
-    # ── Relationships ────────────────────────────────────────────────
     baskets = relationship("Basket", back_populates="base")
 
     def __repr__(self) -> str:
         return f"<GiftBase id={self.id!r} name={self.name!r} size={self.size!r}>"
 
-
 class Basket(Base):
-    """A user's gift basket being built via the step-by-step wizard (FR11)."""
+
     __tablename__ = "baskets"
 
     id: Mapped[str] = mapped_column(
@@ -71,7 +49,6 @@ class Basket(Base):
         default=lambda: str(uuid.uuid4()),
     )
 
-    # ── Owner (registered user OR guest session) ─────────────────────
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
@@ -82,20 +59,17 @@ class Basket(Base):
         doc="Browser session ID for guest builders.",
     )
 
-    # ── Selected container ───────────────────────────────────────────
     base_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("bases.id", ondelete="SET NULL"),
         nullable=True,
         doc="FK to the selected gift base (FR12).",
     )
 
-    # ── Status ───────────────────────────────────────────────────────
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default="draft",
         doc="'draft' while building, 'complete' when ready for cart.",
     )
 
-    # ── Timestamps ───────────────────────────────────────────────────
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False,
         default=lambda: datetime.now(timezone.utc),
@@ -106,7 +80,6 @@ class Basket(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    # ── Relationships ────────────────────────────────────────────────
     user = relationship("User", back_populates="baskets")
     base = relationship("GiftBase", back_populates="baskets")
     items = relationship("BasketItem", back_populates="basket", cascade="all, delete-orphan")
@@ -118,9 +91,8 @@ class Basket(Base):
     def __repr__(self) -> str:
         return f"<Basket id={self.id!r} status={self.status!r}>"
 
-
 class BasketItem(Base):
-    """An individual product placed inside a basket (FR15, FR16)."""
+
     __tablename__ = "basket_items"
 
     id: Mapped[str] = mapped_column(
@@ -137,7 +109,6 @@ class BasketItem(Base):
         Integer, nullable=False, default=1,
     )
 
-    # ── Relationships ────────────────────────────────────────────────
     basket = relationship("Basket", back_populates="items")
     product = relationship("Product")
 

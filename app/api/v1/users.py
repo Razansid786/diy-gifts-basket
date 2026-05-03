@@ -1,12 +1,3 @@
-"""
-app/api/v1/users.py
-───────────────────
-User profile endpoints.
-
-Routes:
-    GET  /users/me — Get the current user's profile.
-    PUT  /users/me — Update the current user's profile.
-"""
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,16 +9,15 @@ from app.services.user_service import UserService
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-
 @router.get(
     "/me",
     response_model=UserResponse,
     summary="Get current user profile",
 )
-async def get_me(current_user=Depends(get_current_user)):
-    """Return the authenticated user's profile information."""
-    return current_user
-
+async def get_me(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    from app.repositories.user_repo import UserRepository
+    user = await UserRepository(db).get_by_id(current_user.id)
+    return user
 
 @router.put(
     "/me",
@@ -39,6 +29,6 @@ async def update_me(
     current_user=Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Update the authenticated user's display name or email."""
+
     service = UserService(db)
     return await service.update_profile(current_user.id, data)

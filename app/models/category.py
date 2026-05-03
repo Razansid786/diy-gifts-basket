@@ -1,10 +1,3 @@
-"""
-app/models/category.py
-──────────────────────
-ORM model for the ``categories`` table.
-
-Categories group products (FR7) — e.g. Snacks, Beauty, Stationery.
-"""
 
 import uuid
 from datetime import datetime, timezone
@@ -13,7 +6,6 @@ from sqlalchemy import String, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-
 
 class Category(Base):
     __tablename__ = "categories"
@@ -42,7 +34,6 @@ class Category(Base):
         default=lambda: datetime.now(timezone.utc),
     )
 
-    # ── Relationships ────────────────────────────────────────────────
     products = relationship("Product", back_populates="category")
 
     def __repr__(self) -> str:

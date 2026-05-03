@@ -1,17 +1,11 @@
-"""
-app/schemas/address.py
-──────────────────────
-Pydantic schemas for shipping address CRUD (FR4).
-"""
 
 from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
-
 class AddressCreate(BaseModel):
-    """Payload for adding a new shipping address."""
+
     label: str = Field("Home", max_length=50, description="e.g. 'Home', 'Office'.")
     line1: str = Field(..., max_length=255)
     line2: Optional[str] = Field("", max_length=255)
@@ -21,9 +15,8 @@ class AddressCreate(BaseModel):
     country: str = Field("US", max_length=100)
     is_default: bool = False
 
-
 class AddressUpdate(BaseModel):
-    """Partial update for an existing address."""
+
     label: Optional[str] = Field(None, max_length=50)
     line1: Optional[str] = Field(None, max_length=255)
     line2: Optional[str] = Field(None, max_length=255)
@@ -33,9 +26,8 @@ class AddressUpdate(BaseModel):
     country: Optional[str] = Field(None, max_length=100)
     is_default: Optional[bool] = None
 
-
 class AddressResponse(BaseModel):
-    """Public representation of a shipping address."""
+
     id: str
     user_id: str
     label: str

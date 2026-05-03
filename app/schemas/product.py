@@ -1,17 +1,11 @@
-"""
-app/schemas/product.py
-──────────────────────
-Pydantic schemas for the product catalog (FR6–FR10).
-"""
 
 from datetime import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-
 class ProductCreate(BaseModel):
-    """Admin payload for adding a new product (FR27)."""
+
     sku: str = Field(..., max_length=50, description="Unique Stock Keeping Unit.")
     title: str = Field(..., max_length=200)
     description: Optional[str] = Field("", max_length=1000)
@@ -21,9 +15,8 @@ class ProductCreate(BaseModel):
     inventory_count: int = Field(0, ge=0)
     is_active: bool = True
 
-
 class ProductUpdate(BaseModel):
-    """Partial update for an existing product (FR27)."""
+
     sku: Optional[str] = Field(None, max_length=50)
     title: Optional[str] = Field(None, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
@@ -33,9 +26,8 @@ class ProductUpdate(BaseModel):
     inventory_count: Optional[int] = Field(None, ge=0)
     is_active: Optional[bool] = None
 
-
 class ProductResponse(BaseModel):
-    """Public product view shown to customers (FR6)."""
+
     id: str
     sku: str
     title: str
@@ -53,9 +45,8 @@ class ProductResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-
 class ProductSearchParams(BaseModel):
-    """Query parameters for the product search endpoint (FR8)."""
+
     q: Optional[str] = Field(None, description="Keyword search term.")
     category_id: Optional[str] = Field(None, description="Filter by category.")
     min_price: Optional[float] = Field(None, ge=0)

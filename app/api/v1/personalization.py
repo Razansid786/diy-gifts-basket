@@ -1,13 +1,3 @@
-"""
-app/api/v1/personalization.py
-─────────────────────────────
-Personalization endpoints for baskets (FR18–FR21).
-
-Routes:
-    GET  /baskets/{id}/personalization        — Get personalization.
-    PUT  /baskets/{id}/personalization        — Set/update personalization.
-    POST /baskets/{id}/personalization/upload — Upload gift-tag image (FR20).
-"""
 
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,7 +9,6 @@ from app.services.upload_service import UploadService
 
 router = APIRouter(prefix="/baskets/{basket_id}/personalization", tags=["Personalization"])
 
-
 @router.get(
     "/",
     response_model=PersonalizationResponse,
@@ -29,10 +18,9 @@ async def get_personalization(
     basket_id: str,
     db: AsyncSession = Depends(get_db),
 ):
-    """Return the personalization details for a basket."""
+
     service = PersonalizationService(db)
     return await service.get_personalization(basket_id)
-
 
 @router.put(
     "/",
@@ -44,14 +32,9 @@ async def upsert_personalization(
     data: PersonalizationUpdate,
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Create or update personalization for a basket.
 
-    Set the gift message, ribbon color, and/or delivery date.
-    """
     service = PersonalizationService(db)
     return await service.upsert_personalization(basket_id, data)
-
 
 @router.post(
     "/upload",
@@ -63,12 +46,7 @@ async def upload_gift_tag(
     file: UploadFile = File(..., description="Image file for the printed gift tag."),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Upload an image for a printed gift tag.
 
-    Accepted formats: JPEG, PNG, GIF, WebP (max 5 MB).
-    The image is stored in Supabase Storage and linked to the basket.
-    """
     try:
         upload_service = UploadService()
         image_url = await upload_service.upload_gift_tag(file)

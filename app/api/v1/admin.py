@@ -1,20 +1,3 @@
-"""
-app/api/v1/admin.py
-───────────────────
-Admin panel endpoints (FR27–FR30).
-
-All endpoints require the ``admin`` role.
-
-Routes:
-    POST /admin/products               — Add a new product (FR27).
-    PUT  /admin/products/{id}          — Edit a product (FR27).
-    POST /admin/categories             — Add a new category.
-    PUT  /admin/categories/{id}        — Edit a category.
-    POST /admin/bases                  — Add a new gift base.
-    GET  /admin/orders                 — List all orders (FR28).
-    GET  /admin/orders/{id}/packing-list — View packing list (FR29).
-    PUT  /admin/orders/{id}/status     — Update order status (FR30).
-"""
 
 from typing import List
 
@@ -35,9 +18,6 @@ from app.utils.pagination import PaginationParams
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
-
-# ── Products (FR27) ─────────────────────────────────────────────────
-
 @router.post(
     "/products",
     response_model=ProductResponse,
@@ -49,10 +29,9 @@ async def create_product(
     data: ProductCreate,
     db: AsyncSession = Depends(get_db),
 ):
-    """Admin: add a new product to the catalog."""
+
     service = ProductService(db)
     return await service.create_product(data)
-
 
 @router.put(
     "/products/{product_id}",
@@ -65,12 +44,9 @@ async def update_product(
     data: ProductUpdate,
     db: AsyncSession = Depends(get_db),
 ):
-    """Admin: update product fields (title, price, inventory, etc.)."""
+
     service = ProductService(db)
     return await service.update_product(product_id, data)
-
-
-# ── Categories ───────────────────────────────────────────────────────
 
 @router.post(
     "/categories",
@@ -83,10 +59,9 @@ async def create_category(
     data: CategoryCreate,
     db: AsyncSession = Depends(get_db),
 ):
-    """Admin: add a new product category."""
+
     service = CategoryService(db)
     return await service.create_category(data)
-
 
 @router.put(
     "/categories/{category_id}",
@@ -99,12 +74,9 @@ async def update_category(
     data: CategoryUpdate,
     db: AsyncSession = Depends(get_db),
 ):
-    """Admin: update category name, slug, description, or image."""
+
     service = CategoryService(db)
     return await service.update_category(category_id, data)
-
-
-# ── Gift Bases ───────────────────────────────────────────────────────
 
 @router.post(
     "/bases",
@@ -117,12 +89,9 @@ async def create_base(
     data: GiftBaseCreate,
     db: AsyncSession = Depends(get_db),
 ):
-    """Admin: add a new gift base type (e.g. Basket, Box, Tin)."""
+
     service = BasketService(db)
     return await service.create_base(data.model_dump())
-
-
-# ── Orders (FR28, FR29, FR30) ────────────────────────────────────────
 
 @router.get(
     "/orders",
@@ -134,12 +103,11 @@ async def list_all_orders(
     pagination: PaginationParams = Depends(),
     db: AsyncSession = Depends(get_db),
 ):
-    """Admin: return all orders, newest first."""
+
     service = OrderService(db)
     return await service.list_all_orders(
         skip=pagination.skip, limit=pagination.limit
     )
-
 
 @router.get(
     "/orders/{order_id}/packing-list",
@@ -151,15 +119,9 @@ async def get_packing_list(
     order_id: str,
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Admin: generate a detailed packing list for an order.
 
-    Returns one packing list per basket in the order, including
-    the container, items, and personalization details.
-    """
     service = OrderService(db)
     return await service.get_packing_list(order_id)
-
 
 @router.put(
     "/orders/{order_id}/status",
@@ -172,6 +134,6 @@ async def update_order_status(
     data: OrderStatusUpdate,
     db: AsyncSession = Depends(get_db),
 ):
-    """Admin: change order status (pending → processing → shipped → delivered)."""
+
     service = OrderService(db)
     return await service.update_order_status(order_id, data)
