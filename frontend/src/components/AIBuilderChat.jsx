@@ -3,13 +3,14 @@ import { useState, useRef, useEffect } from 'react'
 import { apiClient } from '../api/client'
 import { formatCurrency } from '../utils/format'
 
-export function AIBuilderChat({ 
-  isOpen, 
-  onClose, 
-  onAddProduct, 
-  onSelectBase, 
+export function AIBuilderChat({
+  isOpen,
+  onClose,
+  onAddProduct,
+  onSelectBase,
+  onRecommendations,
   context = {},
-  initialMessage = null 
+  initialMessage = null
 }) {
   const { currentStep = 1, selectedBaseId = null, selectedProductIds = [] } = context
   
@@ -86,6 +87,9 @@ export function AIBuilderChat({
         suggestedStep: response.suggested_step
       }
       setMessages(prev => [...prev, botMsg])
+      if (response.recommendations?.length && onRecommendations) {
+        onRecommendations(response.recommendations.map(r => r.id))
+      }
     } catch (error) {
       // Only show error for real user messages
       if (!isStepChange) {

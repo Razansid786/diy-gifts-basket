@@ -18,12 +18,8 @@ class Cart(Base):
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="CASCADE"),
         nullable=True, unique=True,
-        doc="FK to users; NULL for guests.",
     )
-    session_id: Mapped[str] = mapped_column(
-        String(100), nullable=True,
-        doc="Browser session ID for guest carts.",
-    )
+    session_id: Mapped[str] = mapped_column(String(100), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False,
@@ -48,11 +44,8 @@ class CartItem(Base):
     )
     basket_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("baskets.id", ondelete="CASCADE"), nullable=False,
-        doc="Each cart item is a completed gift basket.",
     )
-    quantity: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=1,
-    )
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
     cart = relationship("Cart", back_populates="items")
     basket = relationship("Basket")

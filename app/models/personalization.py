@@ -18,28 +18,13 @@ class Personalization(Base):
     basket_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("baskets.id", ondelete="CASCADE"),
         nullable=False, unique=True,
-        doc="One personalization per basket.",
     )
 
-    gift_message: Mapped[str] = mapped_column(
-        String(250), nullable=True, default="",
-        doc="Custom note included with the gift (max 250 chars).",
-    )
+    gift_message: Mapped[str] = mapped_column(String(250), nullable=True, default="")
+    ribbon_color: Mapped[str] = mapped_column(String(30), nullable=True, default="")
+    gift_tag_image_url: Mapped[str] = mapped_column(String(500), nullable=True, default="")
 
-    ribbon_color: Mapped[str] = mapped_column(
-        String(30), nullable=True, default="",
-        doc="Chosen ribbon color (e.g. 'red', 'gold', 'pink').",
-    )
-
-    gift_tag_image_url: Mapped[str] = mapped_column(
-        String(500), nullable=True, default="",
-        doc="Public URL of the uploaded gift-tag image.",
-    )
-
-    requested_delivery_date: Mapped[date] = mapped_column(
-        Date, nullable=True,
-        doc="Preferred delivery date selected via calendar picker.",
-    )
+    requested_delivery_date: Mapped[date] = mapped_column(Date, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False,

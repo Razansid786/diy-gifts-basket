@@ -157,7 +157,7 @@ export function AuthPage() {
                   <input
                     type="email"
                     required
-                    placeholder="name@example.com"
+                    placeholder="ali@example.com"
                     value={forgotEmail}
                     onChange={(event) => setForgotEmail(event.target.value)}
                   />
@@ -183,7 +183,7 @@ export function AuthPage() {
                   <input
                     type="email"
                     required
-                    placeholder="name@example.com"
+                    placeholder="ali@example.com"
                     value={loginForm.email}
                     onChange={(event) =>
                       setLoginForm((current) => ({ ...current, email: event.target.value }))
@@ -227,7 +227,7 @@ export function AuthPage() {
                 <input
                   type="text"
                   required
-                  placeholder="John Doe"
+                  placeholder="Muhammad Ali"
                   value={registerForm.full_name}
                   onChange={(event) =>
                     setRegisterForm((current) => ({ ...current, full_name: event.target.value }))
@@ -241,7 +241,7 @@ export function AuthPage() {
                   <input
                     type="email"
                     required
-                    placeholder="name@example.com"
+                    placeholder="ali@example.com"
                     value={registerForm.email}
                     onChange={(event) =>
                       setRegisterForm((current) => ({ ...current, email: event.target.value }))
@@ -254,7 +254,7 @@ export function AuthPage() {
                   <input
                     type="tel"
                     required
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="+92 300 1234567"
                     value={registerForm.phone_number}
                     onChange={(event) =>
                       setRegisterForm((current) => ({ ...current, phone_number: event.target.value }))

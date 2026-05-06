@@ -13,7 +13,7 @@ const EMPTY_ADDRESS = {
   city: '',
   state: '',
   zip_code: '',
-  country: 'US',
+  country: 'Pakistan',
   is_default: false,
 }
 
@@ -147,6 +147,59 @@ export function AccountPage() {
     )
   }
 
+  if (user?.role === 'admin') {
+    return (
+      <main className="page page-account">
+        <PageHeader
+          eyebrow="Admin Account"
+          title={`Welcome, ${user.full_name || 'Admin'}`}
+          subtitle="Manage your admin profile and credentials."
+        />
+        <section className="account-grid">
+          <article className="panel">
+            <h2>Profile</h2>
+            {profileNotice ? <p className="inline-notice">{profileNotice}</p> : null}
+            <form className="stack-form" onSubmit={handleProfileSubmit}>
+              <label>
+                Full Name
+                <input
+                  type="text"
+                  placeholder="Muhammad Ali"
+                  value={profileForm.full_name}
+                  onChange={(event) =>
+                    setProfileForm((current) => ({ ...current, full_name: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                Email
+                <input
+                  type="email"
+                  required
+                  placeholder="admin@example.com"
+                  value={profileForm.email}
+                  onChange={(event) =>
+                    setProfileForm((current) => ({ ...current, email: event.target.value }))
+                  }
+                />
+              </label>
+              <button type="submit" className="button">Save profile</button>
+            </form>
+          </article>
+          <article className="panel">
+            <h2>Admin Role</h2>
+            <p style={{ color: 'var(--ink-muted)', marginBottom: '1rem' }}>You have full admin access to the Operations Center.</p>
+            <div style={{ background: 'rgba(45, 192, 175, 0.08)', border: '1px solid rgba(45, 192, 175, 0.25)', borderRadius: '0.8rem', padding: '1rem' }}>
+              <p style={{ margin: 0 }}><strong>Role:</strong> <span style={{ color: 'var(--brand-teal)' }}>Administrator</span></p>
+              <p style={{ margin: '0.5rem 0 0', color: 'var(--ink-muted)', fontSize: '0.9rem' }}>Use the <strong>Operations Center</strong> to manage products, categories, baskets, and orders.</p>
+            </div>
+            <Link to="/admin" className="button" style={{ marginTop: '1.5rem', display: 'inline-block' }}>Go to Operations Center</Link>
+          </article>
+        </section>
+      </main>
+    )
+  }
+
   return (
     <main className="page page-account">
       <PageHeader
@@ -207,6 +260,7 @@ export function AccountPage() {
               <input
                 type="text"
                 required
+                placeholder="House 5, Street 3, Block B"
                 value={addressForm.line1}
                 onChange={(event) =>
                   setAddressForm((current) => ({ ...current, line1: event.target.value }))
@@ -217,6 +271,7 @@ export function AccountPage() {
               Address line 2
               <input
                 type="text"
+                placeholder="Near Masjid, optional"
                 value={addressForm.line2}
                 onChange={(event) =>
                   setAddressForm((current) => ({ ...current, line2: event.target.value }))
@@ -229,6 +284,7 @@ export function AccountPage() {
                 <input
                   type="text"
                   required
+                  placeholder="Lahore"
                   value={addressForm.city}
                   onChange={(event) =>
                     setAddressForm((current) => ({ ...current, city: event.target.value }))
@@ -236,10 +292,11 @@ export function AccountPage() {
                 />
               </label>
               <label>
-                State
+                State / Province
                 <input
                   type="text"
                   required
+                  placeholder="Punjab"
                   value={addressForm.state}
                   onChange={(event) =>
                     setAddressForm((current) => ({ ...current, state: event.target.value }))
@@ -249,10 +306,11 @@ export function AccountPage() {
             </div>
             <div className="inline-grid">
               <label>
-                Zip code
+                Postal Code
                 <input
                   type="text"
                   required
+                  placeholder="54000"
                   value={addressForm.zip_code}
                   onChange={(event) =>
                     setAddressForm((current) => ({ ...current, zip_code: event.target.value }))
@@ -264,6 +322,7 @@ export function AccountPage() {
                 <input
                   type="text"
                   required
+                  placeholder="Pakistan"
                   value={addressForm.country}
                   onChange={(event) =>
                     setAddressForm((current) => ({ ...current, country: event.target.value }))

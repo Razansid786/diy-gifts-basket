@@ -131,7 +131,7 @@ export const apiClient = {
   async uploadImage(file, token) {
     const formData = new FormData()
     formData.append('file', file)
-    const result = await request('/images/', { method: 'POST', body: formData, token })
+    const result = await request('/images/', { method: 'POST', body: formData, token, isFormData: true })
     if (result?.url && result.url.startsWith('/')) {
       const backendOrigin = API_BASE_URL.replace(/\/api\/v1\/?$/, '')
       result.url = `${backendOrigin}${result.url}`

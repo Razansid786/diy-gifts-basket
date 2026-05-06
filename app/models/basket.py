@@ -15,25 +15,11 @@ class GiftBase(Base):
         String(36), primary_key=True,
         default=lambda: str(uuid.uuid4()),
     )
-    name: Mapped[str] = mapped_column(
-        String(100), nullable=False,
-        doc="e.g. 'Wicker Basket', 'Gift Box', 'Decorative Tin'.",
-    )
-    size: Mapped[str] = mapped_column(
-        String(10), nullable=False,
-        doc="S, M, or L — determines max_items.",
-    )
-    price: Mapped[float] = mapped_column(
-        Numeric(10, 2), nullable=False,
-        doc="Price of the container itself.",
-    )
-    image_url: Mapped[str] = mapped_column(
-        String(500), nullable=True, default="",
-    )
-    max_items: Mapped[int] = mapped_column(
-        Integer, nullable=False,
-        doc="Maximum number of gift items this container can hold (FR14).",
-    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    size: Mapped[str] = mapped_column(String(10), nullable=False)
+    price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    image_url: Mapped[str] = mapped_column(String(500), nullable=True, default="")
+    max_items: Mapped[int] = mapped_column(Integer, nullable=False)
 
     baskets = relationship("Basket", back_populates="base")
 
@@ -52,23 +38,15 @@ class Basket(Base):
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
-        doc="FK to users; NULL for guest builders.",
     )
-    session_id: Mapped[str] = mapped_column(
-        String(100), nullable=True,
-        doc="Browser session ID for guest builders.",
-    )
+    session_id: Mapped[str] = mapped_column(String(100), nullable=True)
 
     base_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("bases.id", ondelete="SET NULL"),
         nullable=True,
-        doc="FK to the selected gift base (FR12).",
     )
 
-    status: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="draft",
-        doc="'draft' while building, 'complete' when ready for cart.",
-    )
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="draft")
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False,
@@ -105,9 +83,7 @@ class BasketItem(Base):
     product_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("products.id", ondelete="CASCADE"), nullable=False,
     )
-    quantity: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=1,
-    )
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
     basket = relationship("Basket", back_populates="items")
     product = relationship("Product")

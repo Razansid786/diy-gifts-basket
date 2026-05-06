@@ -65,6 +65,7 @@ export function BasketBuilderPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [showAI, setShowAI] = useState(Boolean(searchParams.get('ai_prompt')))
   const aiPrompt = searchParams.get('ai_prompt')
+  const [aiSuggestedIds, setAiSuggestedIds] = useState(new Set())
 
   const productMap = useMemo(() => new Map(products.map((p) => [p.id, p])), [products])
 
@@ -281,6 +282,7 @@ export function BasketBuilderPage() {
                 selectedBaseId,
                 selectedProductIds: Object.keys(selectedQuantities)
               }}
+              onRecommendations={(ids) => setAiSuggestedIds(new Set(ids))}
               onSelectBase={(base) => {
                 setSelectedBaseId(base.id)
                 setCurrentStep(2)
@@ -311,7 +313,7 @@ export function BasketBuilderPage() {
                   <h2>Choose a base</h2>
                   <div className="base-choice-grid">
                     {bases.map(b => (
-                      <button key={b.id} className={`base-choice-card ${selectedBaseId === b.id ? 'selected' : ''}`} onClick={() => setSelectedBaseId(b.id)}>
+                      <button key={b.id} className={`base-choice-card ${selectedBaseId === b.id ? 'selected' : ''} ${aiSuggestedIds.has(b.id) ? 'ai-suggested' : ''}`} onClick={() => setSelectedBaseId(b.id)}>
                         <img src={b.image_url} alt={b.name} /><div className="base-choice-copy"><h3>{b.name}</h3><p>Size {b.size} · Max {b.max_items} items</p><strong>{formatCurrency(b.price)}</strong></div>
                       </button>
                     ))}
@@ -330,7 +332,7 @@ export function BasketBuilderPage() {
                     {products.filter(p => !p.is_sold_out).slice(0, 24).map(p => {
                       const q = selectedQuantities[p.id] || 0
                       return (
-                        <article key={p.id} className={`builder-product-card ${q > 0 ? 'selected' : ''}`}>
+                        <article key={p.id} className={`builder-product-card ${q > 0 ? 'selected' : ''} ${aiSuggestedIds.has(p.id) ? 'ai-suggested' : ''}`}>
                           <img src={p.image_url} alt={p.title} /><strong>{p.title}</strong><span>{formatCurrency(p.price)} · Stock {p.inventory_count}</span>
                           <div className="quantity-controls">
                             <button className="ghost-button" onClick={() => setProductQuantity(p.id, q - 1)}>-</button>

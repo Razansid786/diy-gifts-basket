@@ -18,45 +18,22 @@ class Order(Base):
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
-        doc="NULL for guest checkout (FR5).",
     )
-    guest_email: Mapped[str] = mapped_column(
-        String(255), nullable=True,
-        doc="Email provided during guest checkout.",
-    )
+    guest_email: Mapped[str] = mapped_column(String(255), nullable=True)
 
-    shipping_address_json: Mapped[str] = mapped_column(
-        Text, nullable=False,
-        doc="JSON snapshot of the shipping address at time of order.",
-    )
-    shipping_fee: Mapped[float] = mapped_column(
-        Numeric(10, 2), nullable=False, default=0,
-        doc="Calculated shipping cost (FR23).",
-    )
+    shipping_address_json: Mapped[str] = mapped_column(Text, nullable=False)
+    shipping_fee: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False, default=0)
 
-    subtotal: Mapped[float] = mapped_column(
-        Numeric(10, 2), nullable=False,
-        doc="Sum of item prices before shipping.",
-    )
-    total: Mapped[float] = mapped_column(
-        Numeric(10, 2), nullable=False,
-        doc="Final amount = subtotal + shipping_fee.",
-    )
+    subtotal: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    total: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
 
-    status: Mapped[str] = mapped_column(
-        String(30), nullable=False, default="pending",
-        doc="Order lifecycle: pending → processing → shipped → delivered.",
-    )
+    status: Mapped[str] = mapped_column(String(30), nullable=False, default="pending")
 
-    payment_ref: Mapped[str] = mapped_column(
-        String(100), nullable=True,
-        doc="Simulated payment reference / transaction ID (FR25).",
-    )
+    payment_ref: Mapped[str] = mapped_column(String(100), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False,
         default=lambda: datetime.now(timezone.utc),
-        doc="Also serves as the order date for sorting (FR28).",
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False,
@@ -83,15 +60,9 @@ class OrderItem(Base):
     )
     basket_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("baskets.id", ondelete="SET NULL"), nullable=True,
-        doc="The gift basket that was ordered (admin packing list — FR29).",
     )
-    unit_price: Mapped[float] = mapped_column(
-        Numeric(10, 2), nullable=False,
-        doc="Total price of this basket at time of purchase.",
-    )
-    quantity: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=1,
-    )
+    unit_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
     order = relationship("Order", back_populates="items")
     basket = relationship("Basket")

@@ -303,7 +303,7 @@ export function AdminPage() {
                   SKU (Unique ID)
                   <input
                     required
-                    placeholder="e.g. SNACK-001"
+                    placeholder="e.g SNACK-001"
                     value={productForm.sku}
                     onChange={(e) => setProductForm((c) => ({ ...c, sku: e.target.value }))}
                   />
@@ -312,7 +312,7 @@ export function AdminPage() {
                   Title
                   <input
                     required
-                    placeholder="e.g. Gourmet Chocolate Bar"
+                    placeholder="e.g Sweets Box or Dry Fruit"
                     value={productForm.title}
                     onChange={(e) => setProductForm((c) => ({ ...c, title: e.target.value }))}
                   />
@@ -322,7 +322,7 @@ export function AdminPage() {
                 Description
                 <textarea
                   rows={2}
-                  placeholder="Describe the product..."
+                  placeholder="e.g A delicious box of assorted sweets or a selection of dried fruits"
                   value={productForm.description}
                   onChange={(e) => setProductForm((c) => ({ ...c, description: e.target.value }))}
                 />
@@ -335,7 +335,7 @@ export function AdminPage() {
                     min="0"
                     step="0.01"
                     required
-                    placeholder="e.g. 5.99"
+                    placeholder="jaise 599.00"
                     value={productForm.price}
                     onChange={(e) => setProductForm((c) => ({ ...c, price: e.target.value }))}
                   />
@@ -346,7 +346,7 @@ export function AdminPage() {
                     type="number"
                     min="0"
                     required
-                    placeholder="e.g. 50"
+                    placeholder="e.g 50"
                     value={productForm.inventory_count}
                     onChange={(e) => setProductForm((c) => ({ ...c, inventory_count: e.target.value }))}
                   />
@@ -426,7 +426,7 @@ export function AdminPage() {
                   Category Name
                   <input
                     required
-                    placeholder="e.g. Sweet Treats"
+                    placeholder="e.g Care or Snacks"
                     value={categoryForm.name}
                     onChange={(e) => setCategoryForm((c) => ({ ...c, name: e.target.value }))}
                   />
@@ -435,7 +435,7 @@ export function AdminPage() {
                   URL Slug
                   <input
                     required
-                    placeholder="e.g. sweet-treats"
+                    placeholder="e.g chocolate-cookies"
                     value={categoryForm.slug}
                     onChange={(e) => setCategoryForm((c) => ({ ...c, slug: e.target.value }))}
                   />
@@ -445,7 +445,7 @@ export function AdminPage() {
                 Description
                 <textarea
                   rows={2}
-                  placeholder="Short description..."
+                  placeholder="e.g A vast variety of sweets category"
                   value={categoryForm.description}
                   onChange={(e) => setCategoryForm((c) => ({ ...c, description: e.target.value }))}
                 />
@@ -503,7 +503,7 @@ export function AdminPage() {
                   Base Name
                   <input
                     required
-                    placeholder="e.g. Wicker Basket"
+                    placeholder="e.g Willow B or Gift Box"
                     value={baseForm.name}
                     onChange={(e) => setBaseForm((c) => ({ ...c, name: e.target.value }))}
                   />
@@ -528,7 +528,7 @@ export function AdminPage() {
                     min="0"
                     step="0.01"
                     required
-                    placeholder="e.g. 12.00"
+                    placeholder="e.g 1200.00"
                     value={baseForm.price}
                     onChange={(e) => setBaseForm((c) => ({ ...c, price: e.target.value }))}
                   />
@@ -539,7 +539,7 @@ export function AdminPage() {
                     type="number"
                     min="1"
                     required
-                    placeholder="e.g. 8"
+                    placeholder="e.g 8"
                     value={baseForm.max_items}
                     onChange={(e) => setBaseForm((c) => ({ ...c, max_items: e.target.value }))}
                   />

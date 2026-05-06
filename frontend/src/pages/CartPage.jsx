@@ -12,7 +12,25 @@ const EMPTY_SHIPPING = {
   city: '',
   state: '',
   zip_code: '',
-  country: 'US',
+  country: 'Pakistan',
+}
+
+const EMPTY_CARD = {
+  name: '',
+  number: '',
+  expiry: '',
+  cvv: '',
+}
+
+function formatCardNumber(raw) {
+  const digits = raw.replace(/\D/g, '').slice(0, 16)
+  return digits.replace(/(.{4})/g, '$1 ').trim()
+}
+
+function formatExpiry(raw) {
+  const digits = raw.replace(/\D/g, '').slice(0, 4)
+  if (digits.length > 2) return `${digits.slice(0, 2)}-${digits.slice(2)}`
+  return digits
 }
 
 export function CartPage() {
@@ -31,6 +49,7 @@ export function CartPage() {
   const [addresses, setAddresses] = useState([])
   const [selectedAddressId, setSelectedAddressId] = useState('')
   const [shippingForm, setShippingForm] = useState(EMPTY_SHIPPING)
+  const [cardForm, setCardForm] = useState(EMPTY_CARD)
   const [checkoutResult, setCheckoutResult] = useState(null)
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [showAuthPrompt, setShowAuthPrompt] = useState(false)
@@ -272,7 +291,7 @@ export function CartPage() {
                         <input
                           type="text"
                           required
-                          placeholder="123 Main St"
+                          placeholder="House 5, Street 3, Block B"
                           value={shippingForm.line1}
                           onChange={(event) =>
                             setShippingForm((current) => ({ ...current, line1: event.target.value }))
@@ -283,7 +302,7 @@ export function CartPage() {
                         Address line 2
                         <input
                           type="text"
-                          placeholder="Apt 4B (optional)"
+                          placeholder="Near Masjid, optional"
                           value={shippingForm.line2}
                           onChange={(event) =>
                             setShippingForm((current) => ({ ...current, line2: event.target.value }))
@@ -297,7 +316,7 @@ export function CartPage() {
                         <input
                           type="text"
                           required
-                          placeholder="New York"
+                          placeholder="Lahore"
                           value={shippingForm.city}
                           onChange={(event) =>
                             setShippingForm((current) => ({ ...current, city: event.target.value }))
@@ -309,7 +328,7 @@ export function CartPage() {
                         <input
                           type="text"
                           required
-                          placeholder="NY"
+                          placeholder="Punjab"
                           value={shippingForm.state}
                           onChange={(event) =>
                             setShippingForm((current) => ({ ...current, state: event.target.value }))
@@ -323,7 +342,7 @@ export function CartPage() {
                         <input
                           type="text"
                           required
-                          placeholder="10001"
+                          placeholder="54000"
                           value={shippingForm.zip_code}
                           onChange={(event) =>
                             setShippingForm((current) => ({ ...current, zip_code: event.target.value }))
@@ -335,7 +354,7 @@ export function CartPage() {
                         <input
                           type="text"
                           required
-                          placeholder="US"
+                          placeholder="Pakistan"
                           value={shippingForm.country}
                           onChange={(event) =>
                             setShippingForm((current) => ({ ...current, country: event.target.value }))
@@ -361,21 +380,50 @@ export function CartPage() {
                   <div className="inline-grid" style={{ marginBottom: '1rem' }}>
                     <label>
                       Name on Card
-                      <input type="text" required placeholder="John Doe" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="Muhammad Ali"
+                        value={cardForm.name}
+                        onChange={(e) => setCardForm((c) => ({ ...c, name: e.target.value }))}
+                      />
                     </label>
                     <label>
                       Card Number
-                      <input type="text" required pattern="\d{16}" title="16-digit card number" placeholder="1234 5678 9101 1121" maxLength="16" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="1234 5678 9012 3456"
+                        maxLength="19"
+                        value={cardForm.number}
+                        onChange={(e) => setCardForm((c) => ({ ...c, number: formatCardNumber(e.target.value) }))}
+                      />
                     </label>
                   </div>
                   <div className="inline-grid" style={{ gridTemplateColumns: '1.5fr 1fr' }}>
                     <label>
-                      Expiry Date (MM/YY)
-                      <input type="text" required pattern="\d{2}/\d{2}" title="MM/YY" placeholder="MM/YY" maxLength="5" />
+                      Expiry Date (MM-YY)
+                      <input
+                        type="text"
+                        required
+                        placeholder="MM-YY"
+                        maxLength="5"
+                        value={cardForm.expiry}
+                        onChange={(e) => setCardForm((c) => ({ ...c, expiry: formatExpiry(e.target.value) }))}
+                      />
                     </label>
                     <label>
                       CVV
-                      <input type="text" required pattern="\d{3,4}" title="3 or 4 digit CVV" placeholder="123" maxLength="4" />
+                      <input
+                        type="text"
+                        required
+                        pattern="\d{3,4}"
+                        title="3 or 4 digit CVV"
+                        placeholder="123"
+                        maxLength="4"
+                        value={cardForm.cvv}
+                        onChange={(e) => setCardForm((c) => ({ ...c, cvv: e.target.value.replace(/\D/g, '') }))}
+                      />
                     </label>
                   </div>
                 </div>

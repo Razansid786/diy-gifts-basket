@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.chat import ChatRoom, ChatMessage
-from app.models.user import User
 
 class ConnectionManager:
     def __init__(self):
@@ -90,37 +89,25 @@ async def get_room_messages(db: AsyncSession, room_id: str) -> List[ChatMessage]
     )
     return list(result.scalars().all())
 
-from sqlalchemy import text
-import uuid
-
 async def save_message(
     db: AsyncSession, room_id: str, sender_id: str, is_admin: bool, content: str
 ) -> ChatMessage:
-    msg_id = str(uuid.uuid4())
+    room_user_id_result = await db.execute(
+        select(ChatRoom.user_id).where(ChatRoom.id == room_id)
+    )
+    room_user_id = room_user_id_result.scalar_one_or_none()
 
-    query = text()
-
-    result = await db.execute(query, {
-        "id": msg_id,
-        "room_id": room_id,
-        "sender_id": sender_id,
-        "is_admin": is_admin,
-        "content": content
-    })
-    row = result.fetchone()
+    msg = ChatMessage(
+        room_id=room_id,
+        sender_id=sender_id,
+        is_admin=is_admin,
+        content=content,
+    )
+    db.add(msg)
     await db.commit()
+    await db.refresh(msg)
 
-    class MockMessage:
-        pass
-    msg = MockMessage()
-    msg.id = row.id
-    msg.room_id = row.room_id
-    msg.sender_id = row.sender_id
-    msg.is_admin = row.is_admin
-    msg.content = row.content
-    msg.is_read = row.is_read
-    msg.created_at = row.created_at
-    msg.room_user_id = row.room_user_id
+    msg.room_user_id = room_user_id or sender_id
     return msg
 
 async def mark_messages_read(db: AsyncSession, room_id: str, is_admin: bool):

@@ -403,7 +403,7 @@ h3 {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 0.9rem;
+  padding: 0.9rem 0.9rem 2.4rem;
   background: linear-gradient(180deg, transparent, rgba(8, 10, 17, 0.92));
 }
 
@@ -998,7 +998,9 @@ textarea:focus {
   border: 0;
   padding: 0.55rem 1.1rem;
   background: transparent;
+  color: var(--ink);
   cursor: pointer;
+  font-weight: 500;
 }
 
 .auth-tabs .active {
@@ -1130,6 +1132,18 @@ textarea:focus {
 .builder-product-card.selected {
   border-color: rgba(45, 192, 175, 0.7);
   box-shadow: inset 0 0 0 1px rgba(45, 192, 175, 0.4);
+}
+
+.builder-product-card.ai-suggested,
+.base-choice-card.ai-suggested {
+  border-color: rgba(255, 200, 60, 0.8);
+  box-shadow: 0 0 12px rgba(255, 200, 60, 0.35), inset 0 0 0 1px rgba(255, 200, 60, 0.4);
+  animation: aiPulse 2s ease-in-out infinite;
+}
+
+@keyframes aiPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(255, 200, 60, 0.35), inset 0 0 0 1px rgba(255, 200, 60, 0.4); }
+  50% { box-shadow: 0 0 22px rgba(255, 200, 60, 0.6), inset 0 0 0 1px rgba(255, 200, 60, 0.6); }
 }
 
 .quantity-controls {

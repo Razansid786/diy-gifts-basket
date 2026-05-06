@@ -14,21 +14,10 @@ class Category(Base):
         String(36), primary_key=True,
         default=lambda: str(uuid.uuid4()),
     )
-    name: Mapped[str] = mapped_column(
-        String(100), unique=True, nullable=False,
-        doc="Display name (e.g. 'Snacks').",
-    )
-    slug: Mapped[str] = mapped_column(
-        String(120), unique=True, nullable=False,
-        doc="URL-friendly slug (e.g. 'snacks').",
-    )
-    description: Mapped[str] = mapped_column(
-        String(500), nullable=True, default="",
-    )
-    image_url: Mapped[str] = mapped_column(
-        String(500), nullable=True, default="",
-        doc="Optional category banner image.",
-    )
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    slug: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    description: Mapped[str] = mapped_column(String(500), nullable=True, default="")
+    image_url: Mapped[str] = mapped_column(String(500), nullable=True, default="")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False,
         default=lambda: datetime.now(timezone.utc),

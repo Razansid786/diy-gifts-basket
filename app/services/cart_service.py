@@ -76,9 +76,10 @@ class CartService:
         subtotal = await self.cart_repo.calculate_subtotal(cart.id)
         shipping_fee = calculate_shipping_fee(subtotal)
 
-        cart = await self.cart_repo.get_or_create(
-            user_id=user_id, session_id=session_id
-        )
+        if user_id:
+            cart = await self.cart_repo.get_by_user(user_id)
+        elif session_id:
+            cart = await self.cart_repo.get_by_session(session_id)
 
         return {
             "cart": cart,

@@ -27,38 +27,19 @@ class Product(Base):
         String(36), primary_key=True,
         default=lambda: str(uuid.uuid4()),
     )
-    sku: Mapped[str] = mapped_column(
-        String(50), unique=True, nullable=False,
-        doc="Stock Keeping Unit — unique product identifier.",
-    )
-    title: Mapped[str] = mapped_column(
-        String(200), nullable=False,
-        doc="Product display name.",
-    )
-    description: Mapped[str] = mapped_column(
-        String(1000), nullable=True, default="",
-    )
-    price: Mapped[float] = mapped_column(
-        Numeric(10, 2), nullable=False,
-        doc="Unit price in USD.",
-    )
-    image_url: Mapped[str] = mapped_column(
-        String(500), nullable=True, default="",
-    )
+    sku: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str] = mapped_column(String(1000), nullable=True, default="")
+    price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    image_url: Mapped[str] = mapped_column(String(500), nullable=True, default="")
 
     category_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("categories.id", ondelete="SET NULL"),
         nullable=True,
     )
 
-    inventory_count: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0,
-        doc="Current stock level; 0 = sold out (FR10).",
-    )
-    is_active: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=True,
-        doc="Soft-delete / visibility toggle.",
-    )
+    inventory_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False,
@@ -82,7 +63,6 @@ class Product(Base):
 
     @property
     def is_sold_out(self) -> bool:
-
         return self.inventory_count <= 0
 
     def __repr__(self) -> str:
