@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { apiClient } from '../api/client'
 import { useAppContext } from '../context/AppContext'
@@ -57,11 +57,20 @@ export function HomePage() {
   const { user, token, sessionId, ensureGuestSession, refreshCart, pushToast } = useAppContext()
   const [products, setProducts] = useState([])
   const [bases, setBases] = useState([])
+  const [categories, setCategories] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeSlide, setActiveSlide] = useState(0)
   const [activeBasket, setActiveBasket] = useState(null)
   const [showAIBuilder, setShowAIBuilder] = useState(false)
   const [busyAction, setBusyAction] = useState(null)
+
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategoryId, setSelectedCategoryId] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [isSearching, setIsSearching] = useState(false)
+  const searchTimeoutRef = useRef(null)
+  const isSearchActive = searchQuery.trim().length > 0 || selectedCategoryId !== ''
+
   const prebuiltBaskets = useMemo(
     () => buildPrebuiltBaskets(products, bases),
     [products, bases],
@@ -69,12 +78,14 @@ export function HomePage() {
   const fetchCatalog = useCallback(async () => {
     setIsLoading(true)
     try {
-      const [productData, baseData] = await Promise.all([
+      const [productData, baseData, categoryData] = await Promise.all([
         apiClient.listProducts({ limit: 100 }),
         apiClient.listBases(),
+        apiClient.listCategories({ limit: 50 }),
       ])
       setProducts(productData)
       setBases(baseData)
+      setCategories(categoryData)
     } catch (error) {
       pushToast(error.message || 'Unable to load prebuilt baskets.', 'error')
     } finally {
@@ -90,6 +101,30 @@ export function HomePage() {
     }, 4200)
     return () => window.clearInterval(timer)
   }, [])
+
+  useEffect(() => {
+    if (searchTimeoutRef.current) window.clearTimeout(searchTimeoutRef.current)
+    if (!searchQuery.trim() && !selectedCategoryId) {
+      setSearchResults([])
+      return
+    }
+    setIsSearching(true)
+    searchTimeoutRef.current = window.setTimeout(async () => {
+      try {
+        const results = await apiClient.searchProducts({
+          q: searchQuery.trim() || undefined,
+          categoryId: selectedCategoryId || undefined,
+          limit: 48,
+        })
+        setSearchResults(results)
+      } catch {
+        setSearchResults([])
+      } finally {
+        setIsSearching(false)
+      }
+    }, 350)
+    return () => window.clearTimeout(searchTimeoutRef.current)
+  }, [searchQuery, selectedCategoryId])
   useEffect(() => {
     if (!activeBasket) return
     const updatedBasket = prebuiltBaskets.find((basket) => basket.id === activeBasket.id)
@@ -315,6 +350,94 @@ export function HomePage() {
         </section>
       ) : null}
       <section className="panel">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <h2 style={{ margin: 0 }}>Browse Products</h2>
+          {isSearchActive && (
+            <button
+              type="button"
+              className="ghost-button"
+              style={{ fontSize: '0.85rem' }}
+              onClick={() => { setSearchQuery(''); setSelectedCategoryId('') }}
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
+        <div className="product-search-bar">
+          <div className="product-search-input-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input
+              type="search"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="product-search-input"
+            />
+          </div>
+          <select
+            value={selectedCategoryId}
+            onChange={(e) => setSelectedCategoryId(e.target.value)}
+            className="product-category-filter"
+          >
+            <option value="">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {isSearching && <p className="empty-state" style={{ marginTop: '1.5rem' }}>Searching...</p>}
+
+        {!isSearching && isSearchActive && searchResults.length === 0 && (
+          <p className="empty-state" style={{ marginTop: '1.5rem' }}>No products found. Try a different search.</p>
+        )}
+
+        {!isSearching && isSearchActive && searchResults.length > 0 && (
+          <>
+            <p className="compact-copy" style={{ marginTop: '0.5rem', marginBottom: '1rem' }}>
+              {searchResults.length} result{searchResults.length !== 1 ? 's' : ''}
+            </p>
+            <div className="product-browse-grid">
+              {searchResults.map((product) => (
+                <article key={product.id} className="product-browse-card">
+                  <img
+                    src={product.image_url || '/images/placeholder.png'}
+                    alt={product.title}
+                    className="product-browse-img"
+                    loading="lazy"
+                  />
+                  <div className="product-browse-copy">
+                    <strong>{product.title}</strong>
+                    <span style={{ color: 'var(--brand-amber)', fontWeight: 600 }}>
+                      {formatCurrency(product.price)}
+                    </span>
+                    {product.inventory_count <= 0 && (
+                      <small style={{ color: 'var(--brand-coral)' }}>Out of stock</small>
+                    )}
+                  </div>
+                  {user?.role !== 'admin' && product.inventory_count > 0 && (
+                    <button
+                      type="button"
+                      className="button"
+                      style={{ width: '100%', fontSize: '0.8rem', padding: '0.4rem' }}
+                      onClick={() => navigate(`/builder?seedProductId=${product.id}`)}
+                    >
+                      Add to Basket
+                    </button>
+                  )}
+                </article>
+              ))}
+            </div>
+          </>
+        )}
+
+        {!isSearchActive && (
+          <p className="empty-state" style={{ marginTop: '1rem', fontSize: '0.9rem', opacity: 0.6 }}>
+            Type a product name or pick a category to browse.
+          </p>
+        )}
+      </section>
+      <section className="panel">
         <h2>Prebuilt Baskets</h2>
         <p className="compact-copy">
           Tap a basket to see details, then choose Buy Now or Customize.
@@ -413,6 +536,7 @@ export function HomePage() {
           </article>
         </section>
       ) : null}
+
       <section className="panel contact-panel">
         <h2>Contact Us</h2>
         <p>Need help with a custom order or delivery request? We are here to help.</p>
